@@ -1,6 +1,8 @@
 package bgu.spl.net.impl.rci;
 
 import bgu.spl.net.api.MessageEncoderDecoder;
+import bgu.spl.net.impl.BGS.Messages.Message;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInput;
@@ -17,7 +19,7 @@ public class ObjectEncoderDecoder implements MessageEncoderDecoder<Serializable>
     private int objectBytesIndex = 0;
 
     @Override
-    public Serializable decodeNextByte(byte nextByte) {
+    public Message decodeNextByte(byte nextByte) {
         if (objectBytes == null) { //indicates that we are still reading the length
             lengthBuffer.put(nextByte);
             if (!lengthBuffer.hasRemaining()) { //we read 4 bytes and therefore can take the length
