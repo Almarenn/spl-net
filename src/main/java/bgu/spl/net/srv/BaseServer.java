@@ -2,7 +2,6 @@ package bgu.spl.net.srv;
 
 import bgu.spl.net.api.MessageEncoderDecoder;
 import bgu.spl.net.api.bidi.BidiMessagingProtocol;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -32,29 +31,17 @@ public abstract class BaseServer<T> implements Server<T> {
     public void serve() {
 
         try (ServerSocket serverSock = new ServerSocket(port)) {
-			System.out.println("Server started");
-
             this.sock = serverSock; //just to be able to close
             int id=0;
-
             while (!Thread.currentThread().isInterrupted()) {
-
                 Socket clientSock = serverSock.accept();
-                BlockingConnectionHandler<T> handler = new BlockingConnectionHandler<>(
-                        clientSock,
-                        encdecFactory.get(),
-                        protocolFactory.get(),
-                        connections,
-                        id);
+                BlockingConnectionHandler<T> handler = new BlockingConnectionHandler<>(clientSock,encdecFactory.get(),protocolFactory.get(),connections,id);
                 connections.add(id,handler);
-
                 execute(handler);
                 id++;
             }
         } catch (IOException ex) {
         }
-
-        System.out.println("server closed!!!");
     }
 
     @Override
@@ -64,5 +51,4 @@ public abstract class BaseServer<T> implements Server<T> {
     }
 
     protected abstract void execute(BlockingConnectionHandler<T>  handler);
-
 }
