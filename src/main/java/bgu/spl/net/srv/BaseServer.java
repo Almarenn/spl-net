@@ -51,4 +51,18 @@ public abstract class BaseServer<T> implements Server<T> {
     }
 
     protected abstract void execute(BlockingConnectionHandler<T>  handler);
+
+    //for thread per client implementation
+    public static <T> BaseServer<T> threadPerClient(
+            int port,
+            Supplier<BidiMessagingProtocol<T>> protocolFactory,
+            Supplier<MessageEncoderDecoder<T>> encoderDecoderFactory) {
+
+        return new BaseServer<T>(port, protocolFactory, encoderDecoderFactory) {
+            @Override
+            protected void execute(BlockingConnectionHandler<T> handler) {
+                new Thread(handler).start();
+            }
+        };
+    }
 }
