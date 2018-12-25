@@ -37,7 +37,6 @@ public class BlockingConnectionHandler<T> implements Runnable, ConnectionHandler
                 T nextMessage = encdec.decodeNextByte((byte) read);
                 if (nextMessage != null) {
                     protocol.start(id,connections);
-                    // process is void so need to use .send() in process
                     protocol.process(nextMessage);
                 }
             }
