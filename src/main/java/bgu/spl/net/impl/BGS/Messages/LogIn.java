@@ -1,12 +1,10 @@
 package bgu.spl.net.impl.BGS.Messages;
 
-import bgu.spl.net.impl.BGS.Messages.Message;
-
-public class Register extends Message {
+public class LogIn extends Message{
     private String userName;
     private String password;
 
-    public Register(String userName,String password){
+    public LogIn(String userName,String password){
         this.userName=userName;
         this.password=password;
     }
