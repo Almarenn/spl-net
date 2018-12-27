@@ -31,7 +31,6 @@ public class ConnectionsImpl<T> implements Connections<T> {
             HashMap.Entry pair = (HashMap.Entry) it.next();
             ConnectionHandler h = (ConnectionHandler) pair.getValue();
             h.send(msg);
-            it.remove(); // avoids a ConcurrentModificationException
         }
     }
 

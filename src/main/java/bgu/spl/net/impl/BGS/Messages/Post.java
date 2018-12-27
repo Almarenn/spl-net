@@ -6,4 +6,8 @@ public class Post extends Message{
     public Post(String content){
         this.content=content;
     }
+
+    public String getContent(){
+        return this.content;
+    }
 }

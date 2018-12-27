@@ -1,10 +1,9 @@
-package bgu.spl.net.impl.BGS.Messages;
+package bgu.spl.net.impl.BGS;
 
 import bgu.spl.net.api.MessageEncoderDecoder;
-
+import bgu.spl.net.impl.BGS.Messages.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -146,12 +145,7 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
     }
 
     private void popStringFollow(Message m){
-        boolean follow;
-        if (bytes[3] == '0') {
-            follow = true;
-        } else {
-            follow = false;
-        }
+        int follow=bytes[3];
         byte[] usersNum = Arrays.copyOfRange(bytes, 4, 6);
         short numOfUsers = bytesToShort(usersNum);
         List <String> userList= new LinkedList<>();
