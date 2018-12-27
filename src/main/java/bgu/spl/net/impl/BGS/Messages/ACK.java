@@ -3,21 +3,19 @@ package bgu.spl.net.impl.BGS.Messages;
 import java.util.List;
 
 public class ACK extends Message{
-    private short opcode;
-    private int follow;
-    private int numOfUsers;
-    private List users;
+    protected short opcode;
+    protected short msgOpcode;
 
-
-    public ACK(short opcode){
+   public ACK(short opcode, short msgOpcode){
         this.opcode=opcode;
+        this.msgOpcode = msgOpcode;
     }
 
-    public ACK(short opcode, int follow, int numOfUsers, List users){
-        this.opcode=opcode;
-        this.follow=follow;
-        this.numOfUsers=numOfUsers;
-        this.users = users;
-    }
+
+
+
+
+
+
 
 }

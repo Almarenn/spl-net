@@ -1,9 +1,10 @@
 package bgu.spl.net.impl.BGS.DB;
 
 import bgu.spl.net.impl.BGS.Messages.Notification;
-
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class User {
     private int id;
@@ -12,9 +13,8 @@ public class User {
     private boolean loggedIn;
     private List<String> following;
     private List<String> followers;
-    private List<String> postMessages;
-    private List<String> privateMessages;
-    private List<Notification> unsentNotification;
+    private Queue<Notification> unsentNotification;
+    private Integer numOfPosts;
 
     public User(String userName,String password){
         this.userName=userName;
@@ -22,9 +22,8 @@ public class User {
         this.loggedIn=false;
         following= new LinkedList();
         followers= new LinkedList<>();
-        postMessages= new LinkedList();
-        privateMessages= new LinkedList();
-        unsentNotification= new LinkedList<>();
+        unsentNotification= new LinkedBlockingQueue<>();
+        numOfPosts = 0;
     }
 
     public boolean isLoggedIn(){
@@ -46,24 +45,18 @@ public class User {
         following.add(user);
     }
 
-    public void addFollower(String user){followers.add(user);}
-
-
-    public void addPost(String post) {
-        postMessages.add(post);
-    }
-
-    public void addPM(String post) {
-        privateMessages.add(post);
-    }
+    public void addFollower(String user){
+        synchronized (followers){
+        followers.add(user);}}
 
     public void removeFollowing(String s){
         following.remove(s);
     }
 
     public void removeFollower(String s){
+        synchronized (followers){
         followers.remove(s);
-    }
+    }}
 
     public String getPassword(){
         return this.password;
@@ -78,21 +71,37 @@ public class User {
     }
 
     public List getFollowers(){
+        synchronized (followers){
         return this.followers;
-    }
+    }}
 
     public void addNotification(Notification n){
+        synchronized (unsentNotification){
         unsentNotification.add(n);
-    }
+    }}
 
-    public void removeNotification(Notification n){
-        unsentNotification.remove(n);
-    }
-
-    public List<Notification> getUnsentNotification(){
+    public Queue<Notification> getUnsentNotification(){
         return this.unsentNotification;
     }
 
+    public void increasNumOfPosts(){
+        synchronized (numOfPosts){
+        numOfPosts=numOfPosts++;}
     }
+
+    public int getNumOfPosts(){
+        synchronized (numOfPosts){
+        return numOfPosts;
+    }}
+
+    public int getNumOfFollowing() {
+        return following.size();
+    }
+
+    public int getNumOfFollowers() {
+        synchronized (followers){
+        return followers.size();}
+    }
+}
 
 

@@ -1,13 +1,13 @@
 package bgu.spl.net.impl.BGS.DB;
 
-import bgu.spl.net.srv.bidi.ConnectionHandler;
-
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DataBase {
-    ConcurrentHashMap<String,User> usersList;
+    private ConcurrentHashMap<String,User> usersList;
 
     private static class DBHolder {
         private static DataBase instance = new DataBase();
@@ -21,18 +21,22 @@ public class DataBase {
     }
 
     public boolean containsUserName(String s){
-        return usersList.containsKey(s);
+        synchronized (usersList){
+            return usersList.containsKey(s);}
     }
 
     public void addUser(String s,User u){
-        usersList.put(s,u);
+        synchronized (usersList){
+            usersList.put(s,u);}
     }
 
     public User getUserByName(String s){
+        //maybe synchronized
         return usersList.get(s);
     }
 
     public User getUserById(int id){
+        synchronized (usersList){
         Iterator it = usersList.entrySet().iterator();
         while (it.hasNext()) {
             HashMap.Entry pair = (HashMap.Entry) it.next();
@@ -42,5 +46,23 @@ public class DataBase {
             }
         }
         return null;
-    }
+    }}
+
+//    public int getNumOfUsers(){
+//        synchronized (usersList) {
+//            return usersList.size();
+//        }
+//    }
+
+    public List<String> getUserNameList() {
+        List<String> userNameList = new LinkedList<>();
+        synchronized (usersList){
+        Iterator it = usersList.keySet().iterator();
+        while (it.hasNext()) {
+            String name = (String) it.next();
+            userNameList.add(name);
+        }
+        return userNameList;
+    }}
+
 }

@@ -16,31 +16,37 @@ public class ConnectionsImpl<T> implements Connections<T> {
 
     @Override
     public boolean send(int connectionId, T msg) {
-        ConnectionHandler<T> handler = connections.get(connectionId);
-        if(handler!=null){
-            handler.send(msg);
-            return true;
+        synchronized (connections) {
+            ConnectionHandler<T> handler = connections.get(connectionId);
+            if (handler != null) {
+                handler.send(msg);
+                return true;
+            }
+            return false;
         }
-        return false;
     }
 
     @Override
     public void broadcast(T msg) {
+        synchronized (connections){
         Iterator it = connections.entrySet().iterator();
         while (it.hasNext()) {
             HashMap.Entry pair = (HashMap.Entry) it.next();
             ConnectionHandler h = (ConnectionHandler) pair.getValue();
             h.send(msg);
-        }
+        }}
     }
 
     @Override
     public void disconnect(int connectionId) {
-        connections.remove(connectionId);
+        synchronized (connections) {
+            connections.remove(connectionId);
+        }
     }
 
     //adds a new connection handler to the map
     public void add(int id, ConnectionHandler<T> handler){
-        connections.put(id,handler);
+        synchronized (connections){
+            connections.put(id,handler);}
     }
 }

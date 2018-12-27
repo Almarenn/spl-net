@@ -6,4 +6,9 @@ public class Stat extends Message {
     public Stat(String userName){
         this.userName=userName;
     }
+
+    public String getUserName(){
+        return userName;
+    }
+
 }
