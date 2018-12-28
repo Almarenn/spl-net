@@ -1,4 +1,4 @@
-package bgu.spl.net.impl.BGS.Messages;
+package bgu.spl.net.impl.BGSServer.Messages;
 
 public class PM extends Message {
     String recipient;

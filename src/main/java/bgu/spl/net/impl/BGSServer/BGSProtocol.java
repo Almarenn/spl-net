@@ -1,16 +1,16 @@
-package bgu.spl.net.impl.BGS;
+package bgu.spl.net.impl.BGSServer;
 
 import bgu.spl.net.api.bidi.BidiMessagingProtocol;
 import bgu.spl.net.api.bidi.Connections;
-import bgu.spl.net.impl.BGS.DB.DataBase;
-import bgu.spl.net.impl.BGS.DB.User;
-import bgu.spl.net.impl.BGS.Messages.*;
-import bgu.spl.net.impl.BGS.Messages.Error;
+import bgu.spl.net.impl.BGSServer.DB.DataBase;
+import bgu.spl.net.impl.BGSServer.DB.User;
+import bgu.spl.net.impl.BGSServer.Messages.*;
+import bgu.spl.net.impl.BGSServer.Messages.Error;
 
 import java.util.LinkedList;
 import java.util.List;
 
-public class BGSProtocol implements BidiMessagingProtocol {
+public class BGSProtocol<Message> implements BidiMessagingProtocol {
     private int id;
     private Connections connections;
     private DataBase DB = DataBase.getInstance();
@@ -73,7 +73,7 @@ public class BGSProtocol implements BidiMessagingProtocol {
         String userName = m.getUserName();
         User u = DB.getUserByName(userName);
         synchronized (u){ // so 2 threads won't log in with same user.
-        if (u==null || !(u.getPassword()).equals(m.getPassword()) || u.isLoggedIn()) {
+        if (u==null || DB.getUserById(id)!=null|| !(u.getPassword()).equals(m.getPassword()) || u.isLoggedIn() ) {
             connections.send(id, new Error((short) 11, (short) 2));
         }
         else {
@@ -103,29 +103,29 @@ public class BGSProtocol implements BidiMessagingProtocol {
             connections.send(id, new Error((short) 11, (short) 4));
         }
         int numOfUsers = m.getNumOfUsers();
-        int namOfSuccessful = 0;
+        short numOfSuccessful = 0;
         List usersNames = new LinkedList();
         List<String> names = m.getNameList();
         for (String name : names) {
             if (m.getFollow() == 0 && !u.isUserOnMyList(name)) {
                 u.addToFollow(name);
-                namOfSuccessful++;
+                numOfSuccessful++;
                 usersNames.add(name);
                 User following = DB.getUserByName(name);
                 following.addFollower(u.getUserName());
             }
             if (m.getFollow() == 1 && u.isUserOnMyList(name)) {
                 u.removeFollowing(name);
-                namOfSuccessful++;
+                numOfSuccessful++;
                 usersNames.add(name);
                 User unfollowing = DB.getUserByName(name);
                 unfollowing.removeFollower(u.getUserName());
             }
         }
-        if (namOfSuccessful == 0 && numOfUsers != 0) {
+        if (numOfSuccessful == 0 && numOfUsers != 0) {
             connections.send(id, new Error((short) 11, (short) 4));
         } else {
-            connections.send(id, new ACKFollow((short) 10, (short) 4, m.getFollow(), namOfSuccessful, usersNames));
+            connections.send(id, new ACKFollow((short) 10, (short) 4, numOfSuccessful, usersNames));
         }
     }
 
@@ -158,7 +158,7 @@ public class BGSProtocol implements BidiMessagingProtocol {
                 for (String user : toSend) {
                     User recipient = DB.getUserByName(user);
                     if (recipient != null) {
-                        Notification n = new Notification((short) 9, 1, u.getUserName(), post);
+                        Notification n = new Notification((short) 9, '1', u.getUserName(), post);
                         synchronized (recipient){
                         boolean wasSent = connections.send(recipient.getId(), n);
                         if (!wasSent) {
@@ -177,7 +177,7 @@ public class BGSProtocol implements BidiMessagingProtocol {
             connections.send(id, new Error((short) 11, (short) 6));
         } else {
             connections.send(id, new ACK((short) 10, (short) 6));
-            Notification n = new Notification((short) 9, 0, u.getUserName(), m.getContent());
+            Notification n = new Notification((short) 9, '0', u.getUserName(), m.getContent());
             synchronized (recipient){
             boolean wasSent = connections.send(recipient.getId(), n);
             if (!wasSent) {
@@ -192,7 +192,7 @@ public class BGSProtocol implements BidiMessagingProtocol {
             connections.send(id, new Error((short) 11, (short) 7));
         } else {
             List<String> userNameList = DB.getUserNameList();
-            int numOfUsers = userNameList.size();
+            short numOfUsers = (short)userNameList.size();
             connections.send(id, new ACKUsersList((short) 10, (short) 7, numOfUsers, userNameList));
         }
     }
@@ -202,9 +202,9 @@ public class BGSProtocol implements BidiMessagingProtocol {
         if (u == null || !DB.getUserById(id).isLoggedIn()) {
             connections.send(id, new Error((short) 11, (short) 8));
         } else {
-            int numOfPosts = u.getNumOfPosts();
-            int numOfFollowers = u.getNumOfFollowers();
-            int numOfFollowing = u.getNumOfFollowing();
+            short numOfPosts = (short)u.getNumOfPosts();
+            short numOfFollowers = (short)u.getNumOfFollowers();
+            short numOfFollowing = (short)u.getNumOfFollowing();
             connections.send(id, new ACKStat((short) 10, (short) 8, numOfPosts, numOfFollowers, numOfFollowing));
         }
     }

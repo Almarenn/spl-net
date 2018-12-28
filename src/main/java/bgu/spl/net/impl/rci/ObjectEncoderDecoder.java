@@ -1,7 +1,7 @@
 package bgu.spl.net.impl.rci;
 
 import bgu.spl.net.api.MessageEncoderDecoder;
-import bgu.spl.net.impl.BGS.Messages.Message;
+import bgu.spl.net.impl.BGSServer.Messages.Message;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

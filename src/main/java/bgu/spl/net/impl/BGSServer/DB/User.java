@@ -1,6 +1,6 @@
-package bgu.spl.net.impl.BGS.DB;
+package bgu.spl.net.impl.BGSServer.DB;
 
-import bgu.spl.net.impl.BGS.Messages.Notification;
+import bgu.spl.net.impl.BGSServer.Messages.Notification;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;

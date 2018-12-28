@@ -1,4 +1,4 @@
-package bgu.spl.net.impl.BGS.DB;
+package bgu.spl.net.impl.BGSServer.DB;
 
 import java.util.HashMap;
 import java.util.Iterator;

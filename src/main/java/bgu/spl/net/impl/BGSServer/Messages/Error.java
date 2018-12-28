@@ -1,4 +1,4 @@
-package bgu.spl.net.impl.BGS.Messages;
+package bgu.spl.net.impl.BGSServer.Messages;
 
 public class Error extends Message {
     private short opcode;
@@ -7,5 +7,13 @@ public class Error extends Message {
     public Error(short opcode, short msgOpcode){
         this.msgOpcode = msgOpcode;
         this.opcode=opcode;
+    }
+
+    public short getOpcode(){
+        return this.opcode;
+    }
+
+    public short getMsgOpcode(){
+        return this.msgOpcode;
     }
 }

@@ -1,7 +1,5 @@
 package bgu.spl.net.api;
 
-import bgu.spl.net.impl.BGS.Messages.Message;
-
 public interface MessageEncoderDecoder<T> {
 
     /**
