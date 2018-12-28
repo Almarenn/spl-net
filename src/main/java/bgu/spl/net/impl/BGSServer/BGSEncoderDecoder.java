@@ -3,7 +3,6 @@ package bgu.spl.net.impl.BGSServer;
 import bgu.spl.net.api.MessageEncoderDecoder;
 import bgu.spl.net.impl.BGSServer.Messages.*;
 import bgu.spl.net.impl.BGSServer.Messages.Error;
-
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -80,6 +79,7 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
         return messageArray;
     }
 
+    //ERROR MESSAGE
     private byte[] encodeError(Message message){
             Error e= (Error)message;
             byte[] opcode= shortToBytes(e.getOpcode());
@@ -90,6 +90,7 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
             return messageArray;
     }
 
+    //NOTIFICATION MESSAGE
     private byte[] encodeNotification(Message message){
             Notification n= (Notification)message;
             byte[] opcode= shortToBytes(n.getOpcode());
@@ -106,6 +107,7 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
             return messageArray;
     }
 
+    //ACK MESSAGE
     private byte[] encodeACK(Message message){
         if(message instanceof ACKFollow){
             ACKFollow a= (ACKFollow) message;
@@ -172,20 +174,20 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
     private Message popString() {
         Message m = null;
         if (opcode == 1 || opcode == 2) { //Message type is Register or Log In
-            popStringRegisterOrLogIn(m);
+            m=popStringRegisterOrLogIn();
         }
         if (opcode == 3) { //Message type is Log Out
             m = new LogOut();
         }
         if (opcode == 4) { //Message type is Follow
-            popStringFollow(m);
+           m = popStringFollow();
         }
         if(opcode==5){ //Message type is Post Message
             String content= new String(bytes, 3 , len, StandardCharsets.UTF_8);
             m= new Post(content);
         }
         if(opcode==6){ //Message type is PM
-            popStringPM(m);
+            m = popStringPM();
         }
         if(opcode==7){ //Message type is User List
             m= new UserList();
@@ -198,6 +200,58 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
         return m;
     }
 
+    private Message popStringRegisterOrLogIn() {
+        int i = findIndex((byte) 0);
+        String userName = new String(bytes, 3, i, StandardCharsets.UTF_8);
+        String password = new String(bytes, i + 1, len, StandardCharsets.UTF_8);
+        if (opcode == 1) {
+            return new Register(userName, password);
+        } else
+            return new LogIn(userName, password);
+    }
+
+    private Message popStringFollow(){
+        int follow=bytes[3];
+        byte[] usersNum = Arrays.copyOfRange(bytes, 4, 6);
+        short numOfUsers = bytesToShort(usersNum);
+        List <String> userList= new LinkedList<>();
+        String s="";
+        for(int i=6; i<=len; i++){
+            if(bytes[i]==0){
+                userList.add(s);
+                s="";
+            }
+            else{
+                String c= new String(bytes, i , i+1, StandardCharsets.UTF_8);
+                s=s+c;
+            }
+        }
+        return new Follow(follow,numOfUsers,userList);
+    }
+
+    private Message popStringPM(){
+        int i= findIndex((byte)0);
+        String username= new String(bytes, 3 , i, StandardCharsets.UTF_8);
+        String content= new String(bytes, i+1 , len, StandardCharsets.UTF_8);
+        return new PM(username,content);
+    }
+
+    //converts list of users names to a byte array of those names, separated with 0.
+    private Byte[] StringListToByteArray(List<String> l){
+        int numBytes = 0;
+        for (String str: l)
+            numBytes += str.getBytes().length;
+        List<Byte> byteList = new ArrayList<>();
+
+        for (String str: l) {
+            byte[] currentByteArr = str.getBytes();
+            for (byte b: currentByteArr){
+                byteList.add(b);}
+            byteList.add((byte)0);
+        }
+        Byte[] usersArray = byteList.toArray(new Byte[numBytes]);
+        return usersArray;
+    }
 
     public short bytesToShort(byte[] byteArr)
     {
@@ -214,6 +268,7 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
         return bytesArr;
     }
 
+    //find the first index of a specific byte in a byte array. return -1 if not found.
     private int findIndex(byte b) {
         // find length of array
         int len = this.len;
@@ -231,57 +286,5 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
             }
         }
         return -1;
-    }
-
-    private void popStringRegisterOrLogIn(Message m) {
-        int i = findIndex((byte) 0);
-        String userName = new String(bytes, 3, i, StandardCharsets.UTF_8);
-        String password = new String(bytes, i + 1, len, StandardCharsets.UTF_8);
-        if (opcode == 1) {
-            m = new Register(userName, password);
-        } else
-            m = new LogIn(userName, password);
-    }
-
-    private void popStringFollow(Message m){
-        int follow=bytes[3];
-        byte[] usersNum = Arrays.copyOfRange(bytes, 4, 6);
-        short numOfUsers = bytesToShort(usersNum);
-        List <String> userList= new LinkedList<>();
-        String s="";
-        for(int i=6; i<=len; i++){
-            if(bytes[i]==0){
-                userList.add(s);
-                s="";
-            }
-            else{
-                String c= new String(bytes, i , i+1, StandardCharsets.UTF_8);
-                s=s+c;
-            }
-        }
-        m= new Follow(follow,numOfUsers,userList);
-    }
-
-    private void popStringPM(Message m){
-        int i= findIndex((byte)0);
-        String username= new String(bytes, 3 , i, StandardCharsets.UTF_8);
-        String content= new String(bytes, i+1 , len, StandardCharsets.UTF_8);
-        m= new PM(username,content);
-    }
-
-    private Byte[] StringListToByteArray(List<String> l){
-        int numBytes = 0;
-        for (String str: l)
-            numBytes += str.getBytes().length;
-        List<Byte> byteList = new ArrayList<>();
-
-        for (String str: l) {
-            byte[] currentByteArr = str.getBytes();
-            for (byte b: currentByteArr){
-                byteList.add(b);}
-            byteList.add((byte)0);
-        }
-        Byte[] usersArray = byteList.toArray(new Byte[numBytes]);
-        return usersArray;
     }
 }
