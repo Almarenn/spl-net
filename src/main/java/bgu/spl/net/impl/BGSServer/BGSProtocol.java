@@ -116,6 +116,7 @@ public class BGSProtocol<Message> implements BidiMessagingProtocol {
                 User following = DB.getUserByName(name);
                 following.addFollower(u.getUserName());
             }
+            System.out.println(m.getFollow());
             if (m.getFollow() == 1 && u.isUserOnMyList(name)) {
                 u.removeFollowing(name);
                 numOfSuccessful++;
@@ -127,6 +128,7 @@ public class BGSProtocol<Message> implements BidiMessagingProtocol {
         if (numOfSuccessful == 0 && numOfUsers != 0) {
             connections.send(id, new Error((short) 11, (short) 4));
         } else {
+            System.out.println(numOfSuccessful);
             connections.send(id, new ACKFollow((short) 10, (short) 4, numOfSuccessful, usersNames));
         }
     }

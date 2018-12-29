@@ -7,8 +7,12 @@ public class Follow extends Message {
     int numOfUsers;
     List nameList;
 
-    public Follow(int follow, int numOfUsers, List nameList){
-        this.follow=follow;
+    public Follow(String follow, int numOfUsers, List nameList){
+        if(follow.equals("0")){
+            this.follow=0;
+        }
+        else
+            this.follow=1;
         this.numOfUsers=numOfUsers;
         this.nameList=nameList;
     }
