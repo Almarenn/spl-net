@@ -24,6 +24,7 @@ public class User {
         followers= new LinkedList<>();
         unsentNotification= new LinkedBlockingQueue<>();
         numOfPosts = 0;
+        this.id=-1;
     }
 
     public boolean isLoggedIn(){
@@ -35,7 +36,8 @@ public class User {
         this.id=id;
     }
 
-    public void logOut(){loggedIn = false;}
+    public void logOut(){loggedIn = false;
+    this.id=-1;}
 
     public boolean isUserOnMyList(String user){
         return following.contains(user);

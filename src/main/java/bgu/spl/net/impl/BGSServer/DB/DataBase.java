@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DataBase {
-    private ConcurrentHashMap<String,User> usersList;
+    private ConcurrentHashMap<String,User> usersList= new ConcurrentHashMap<>();
 
     private static class DBHolder {
         private static DataBase instance = new DataBase();

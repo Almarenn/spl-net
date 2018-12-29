@@ -15,6 +15,7 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
     private int len = 0;
     boolean endOfMessage=false;
     short opcode=0;
+    int counterOfZeros=0;
 
     public BGSEncoderDecoder(){}
 
@@ -22,15 +23,17 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
     @Override
     public Message decodeNextByte(byte nextByte) {
         pushByte(nextByte);
-        int counter=0;
+        System.out.println(len);
+        System.out.println(Arrays.toString(Arrays.copyOfRange(bytes,1,len)));
         if(len==2){
-            this.opcode=bytesToShort(bytes);
+           this.opcode=bytesToShort(Arrays.copyOfRange(bytes,1,3));
+           System.out.println("opcode is "+opcode);
         }
-        if(opcode==1 || opcode==2 || opcode==6){
-            if(nextByte==0){
-                counter++;
+        if(opcode==(short)1 || opcode==(short)2 || opcode==(short)6){
+            if(nextByte=='\0'){
+                counterOfZeros++;
             }
-            if(counter==2){
+            if(counterOfZeros==2){
                 endOfMessage=true;
             }
         }
@@ -42,22 +45,23 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
                 byte[] usersNum=Arrays.copyOfRange(bytes, 4,6);
                 short numOfUsers=bytesToShort(usersNum);
                 if(nextByte=='\0'){
-                    counter++;
+                    counterOfZeros++;
                 }
-                if(counter==numOfUsers){
+                if(counterOfZeros==numOfUsers){
                     endOfMessage=true;
                 }
             }
         }
         if(opcode==5 || opcode==8){
             if(nextByte=='\0'){
-                counter++;
+                counterOfZeros++;
             }
-            if(counter==1){
+            if(counterOfZeros==1){
                 endOfMessage=true;
             }
         }
         if (endOfMessage) {
+            counterOfZeros=0;
             return popString();
         }
         else
@@ -115,7 +119,7 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
                 byte[] msgOpcode= shortToBytes(a.getMsgOpcode());
                 byte[] numOfUsers= shortToBytes(a.getNumOfUsers());
                 List<String> users= a.getUsers();
-                Byte[] usersArray = StringListToByteArray(users);
+                byte[] usersArray = StringListToByteArray(users);
                 byte[] messageArray= new byte[6+usersArray.length];
                 System.arraycopy(opcode,0,messageArray,0,opcode.length);
                 System.arraycopy(msgOpcode,0,messageArray,2,msgOpcode.length);
@@ -144,12 +148,14 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
                 byte[] msgOpcode= shortToBytes(a.getMsgOpcode());
                 byte[] numOfUsers= shortToBytes(a.getNumOfUsers());
                 List<String> users = a.getUsers();
-                Byte[] usersArray = StringListToByteArray(users);
+                byte[] usersArray = StringListToByteArray(users);
+                System.out.println(Arrays.toString(usersArray));
                 byte[] messageArray= new byte[6+usersArray.length];
                 System.arraycopy(opcode,0,messageArray,0,opcode.length);
                 System.arraycopy(msgOpcode,0,messageArray,2,msgOpcode.length);
                 System.arraycopy(numOfUsers,0,messageArray,4,numOfUsers.length);
                 System.arraycopy(usersArray,0,messageArray,6,usersArray.length);
+                System.out.println(Arrays.toString(messageArray));
                 return messageArray;
         }
         else {
@@ -167,8 +173,9 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
         if (len >= bytes.length) {
             bytes = Arrays.copyOf(bytes, len * 2);
         }
+        len++;
+        bytes[len] = nextByte;
 
-        bytes[len++] = nextByte;
     }
 
     private Message popString() {
@@ -183,7 +190,7 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
            m = popStringFollow();
         }
         if(opcode==5){ //Message type is Post Message
-            String content= new String(bytes, 3 , len, StandardCharsets.UTF_8);
+            String content= new String(bytes, 3 , len-3, StandardCharsets.UTF_8);
             m= new Post(content);
         }
         if(opcode==6){ //Message type is PM
@@ -193,21 +200,25 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
             m= new UserList();
         }
         if(opcode==8){ //Message type is Stat
-            String username= new String(bytes, 3 , len, StandardCharsets.UTF_8);
+            String username= new String(bytes, 3 , len-3, StandardCharsets.UTF_8);
             m= new Stat(username);
         }
         len = 0;
+        opcode = 0;
+        endOfMessage=false;
         return m;
     }
 
     private Message popStringRegisterOrLogIn() {
-        int i = findIndex((byte) 0);
-        String userName = new String(bytes, 3, i, StandardCharsets.UTF_8);
-        String password = new String(bytes, i + 1, len, StandardCharsets.UTF_8);
+        int i = findIndex((byte)'\0',3) ;
+        String userName = new String(bytes, 3, i-3 );
+        String password = new String(bytes, i + 1, len-i-1);
+        System.out.println(userName);
+        System.out.println(password);
         if (opcode == 1) {
             return new Register(userName, password);
-        } else
-            return new LogIn(userName, password);
+        } else{
+            return new LogIn(userName, password);}
     }
 
     private Message popStringFollow(){
@@ -222,7 +233,7 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
                 s="";
             }
             else{
-                String c= new String(bytes, i , i+1, StandardCharsets.UTF_8);
+                String c= new String(bytes, i , 1, StandardCharsets.UTF_8);
                 s=s+c;
             }
         }
@@ -230,14 +241,14 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
     }
 
     private Message popStringPM(){
-        int i= findIndex((byte)0);
-        String username= new String(bytes, 3 , i, StandardCharsets.UTF_8);
-        String content= new String(bytes, i+1 , len, StandardCharsets.UTF_8);
+        int i= findIndex((byte)0, 3);
+        String username= new String(bytes, 3 , i-3, StandardCharsets.UTF_8);
+        String content= new String(bytes, i+1 , len-i-1, StandardCharsets.UTF_8);
         return new PM(username,content);
     }
 
     //converts list of users names to a byte array of those names, separated with 0.
-    private Byte[] StringListToByteArray(List<String> l){
+    private byte[] StringListToByteArray(List<String> l){
         int numBytes = 0;
         for (String str: l)
             numBytes += str.getBytes().length;
@@ -249,7 +260,12 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
                 byteList.add(b);}
             byteList.add((byte)0);
         }
-        Byte[] usersArray = byteList.toArray(new Byte[numBytes]);
+        byte[] usersArray = new byte[byteList.size()];
+        int i=0;
+        for(byte b:byteList){
+            usersArray[i]=b;
+            i++;
+        }
         return usersArray;
     }
 
@@ -269,13 +285,13 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
     }
 
     //find the first index of a specific byte in a byte array. return -1 if not found.
-    private int findIndex(byte b) {
+    private int findIndex(byte b, int indexFrom) {
         // find length of array
         int len = this.len;
-        int i = 0;
+        int i = indexFrom;
 
         // traverse in the array
-        while (i < len) {
+        while (i <= len) {
             // if the i-th element is t
             // then return the index
             if (bytes[i] == b) {

@@ -71,7 +71,9 @@ public class BGSProtocol<Message> implements BidiMessagingProtocol {
 
     private void processLogIn(LogIn m) {
         String userName = m.getUserName();
+        System.out.println(userName);
         User u = DB.getUserByName(userName);
+        System.out.println(u.getUserName());
         synchronized (u){ // so 2 threads won't log in with same user.
         if (u==null || DB.getUserById(id)!=null|| !(u.getPassword()).equals(m.getPassword()) || u.isLoggedIn() ) {
             connections.send(id, new Error((short) 11, (short) 2));
