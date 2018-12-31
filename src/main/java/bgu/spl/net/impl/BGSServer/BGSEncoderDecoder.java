@@ -25,7 +25,6 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
     @Override
     public Message decodeNextByte(byte nextByte) {
         pushByte(nextByte);
-        System.out.println(len);
         System.out.println(Arrays.toString(Arrays.copyOfRange(bytes, 1, len)));
         if (len == 2) {
             this.opcode = bytesToShort(Arrays.copyOfRange(bytes, 1, 3));
@@ -150,13 +149,11 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
             byte[] numOfUsers = shortToBytes(a.getNumOfUsers());
             List<String> users = a.getUsers();
             byte[] usersArray = StringListToByteArray(users);
-            System.out.println(Arrays.toString(usersArray));
             byte[] messageArray = new byte[6 + usersArray.length];
             System.arraycopy(opcode, 0, messageArray, 0, opcode.length);
             System.arraycopy(msgOpcode, 0, messageArray, 2, msgOpcode.length);
             System.arraycopy(numOfUsers, 0, messageArray, 4, numOfUsers.length);
             System.arraycopy(usersArray, 0, messageArray, 6, usersArray.length);
-            System.out.println(Arrays.toString(messageArray));
             return messageArray;
         } else {
             ACK a = (ACK) message;
@@ -213,8 +210,6 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
         int i = findIndex((byte) '\0', 3);
         String userName = new String(bytes, 3, i - 3);
         String password = new String(bytes, i + 1, len - i - 1);
-        System.out.println(userName);
-        System.out.println(password);
         if (opcode == 1) {
             return new Register(userName, password);
         } else {
@@ -240,7 +235,6 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
                 s = s + c;
             }
         }
-        System.out.println(s);
         return new Follow(follow, numOfUsers, userList);
     }
 

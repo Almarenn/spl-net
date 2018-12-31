@@ -140,23 +140,35 @@ public class BGSProtocol<Message> implements BidiMessagingProtocol {
             connections.send(id, new Error((short) 11, (short) 5));
         } else {
             String post = m.getContent();
+            System.out.println(post);
             List<String> toSend = new LinkedList<>();
             int i = 0;
             while (i < post.length()) {
                 int first = post.indexOf("@", i);
-                int last = post.indexOf(" ", i);
+                int last = post.indexOf(" ", first);
                 String s = "";
                 if (last != -1) {
                     s = post.substring(first + 1, last);
-                } else {
-                    s = post.substring(first + 1);
+                    i = last + 1;
+                if(first==-1){
+                    i=post.length();
                 }
-                toSend.add(s);
-                i = last + 1;
+                } if(last==-1) {
+                    s = post.substring(first + 1);
+                    i=post.length();
+                }
+                if(!toSend.contains(s)){
+                    toSend.add(s);}
+
             }
             List<String> followers = u.getFollowers();
             synchronized (followers) { // so other threads won't change the followers list before we send notifications
-                toSend.addAll(followers);
+                for(String follower: followers){
+                    if(toSend.contains(follower)){
+                        toSend.add(follower);
+                    }
+                }
+                System.out.println(toSend.toString());
                 u.increasNumOfPosts();
                 connections.send(id, new ACK((short) 10, (short) 5));
                 for (String user : toSend) {
@@ -175,6 +187,8 @@ public class BGSProtocol<Message> implements BidiMessagingProtocol {
     }
 
     private void processPM(PM m) {
+        System.out.println(m.getContent());
+        System.out.println(m.getRecipient());
         User u = DB.getUserById(id);
         User recipient = DB.getUserByName(m.getRecipient());
         if (u == null || !u.isLoggedIn() || recipient == null) {
