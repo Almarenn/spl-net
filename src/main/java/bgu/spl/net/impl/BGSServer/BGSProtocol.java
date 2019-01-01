@@ -13,8 +13,12 @@ import java.util.List;
 public class BGSProtocol<Message> implements BidiMessagingProtocol {
     private int id;
     private Connections connections;
-    private DataBase DB = DataBase.getInstance();
+    private DataBase DB;
     private boolean shouldTerminate;
+
+    public BGSProtocol(DataBase DB){
+        this.DB= DB;
+    }
 
     @Override
     public void start(int connectionId, Connections connections) {
@@ -71,20 +75,23 @@ public class BGSProtocol<Message> implements BidiMessagingProtocol {
 
     private void processLogIn(LogIn m) {
         String userName = m.getUserName();
-        System.out.println(userName);
         User u = DB.getUserByName(userName);
-        System.out.println(u.getUserName());
-        synchronized (u){ // so 2 threads won't log in with same user.
-        if (u==null || DB.getUserById(id)!=null|| !(u.getPassword()).equals(m.getPassword()) || u.isLoggedIn() ) {
+        if(u==null){
             connections.send(id, new Error((short) 11, (short) 2));
         }
         else {
-            u.logIn(id);
-            connections.send(id, new ACK((short) 10, (short) 2));
-            while (u.getUnsentNotification() != null && !u.getUnsentNotification().isEmpty()) {
-                connections.send(id, u.getUnsentNotification().poll());
+            synchronized (u) { // so 2 threads won't log in with same user.
+                if (DB.getUserById(id) != null || !(u.getPassword()).equals(m.getPassword()) || u.isLoggedIn()) {
+                    connections.send(id, new Error((short) 11, (short) 2));
+                } else {
+                    u.logIn(id);
+                    connections.send(id, new ACK((short) 10, (short) 2));
+                    while (u.getUnsentNotification() != null && !u.getUnsentNotification().isEmpty()) {
+                        connections.send(id, u.getUnsentNotification().poll());
+                    }
+                }
             }
-        }}
+        }
     }
 
     private void processLogOut() {
@@ -116,7 +123,6 @@ public class BGSProtocol<Message> implements BidiMessagingProtocol {
                 User following = DB.getUserByName(name);
                 following.addFollower(u.getUserName());
             }
-            System.out.println(m.getFollow());
             if (m.getFollow() == 1 && u.isUserOnMyList(name)) {
                 u.removeFollowing(name);
                 numOfSuccessful++;
@@ -128,7 +134,6 @@ public class BGSProtocol<Message> implements BidiMessagingProtocol {
         if (numOfSuccessful == 0 && numOfUsers != 0) {
             connections.send(id, new Error((short) 11, (short) 4));
         } else {
-            System.out.println(numOfSuccessful);
             connections.send(id, new ACKFollow((short) 10, (short) 4, numOfSuccessful, usersNames));
         }
     }
@@ -140,7 +145,6 @@ public class BGSProtocol<Message> implements BidiMessagingProtocol {
             connections.send(id, new Error((short) 11, (short) 5));
         } else {
             String post = m.getContent();
-            System.out.println(post);
             List<String> toSend = new LinkedList<>();
             int i = 0;
             while (i < post.length()) {
@@ -168,7 +172,6 @@ public class BGSProtocol<Message> implements BidiMessagingProtocol {
                         toSend.add(follower);
                     }
                 }
-                System.out.println(toSend.toString());
                 u.increasNumOfPosts();
                 connections.send(id, new ACK((short) 10, (short) 5));
                 for (String user : toSend) {
@@ -187,8 +190,6 @@ public class BGSProtocol<Message> implements BidiMessagingProtocol {
     }
 
     private void processPM(PM m) {
-        System.out.println(m.getContent());
-        System.out.println(m.getRecipient());
         User u = DB.getUserById(id);
         User recipient = DB.getUserByName(m.getRecipient());
         if (u == null || !u.isLoggedIn() || recipient == null) {

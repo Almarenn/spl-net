@@ -25,10 +25,8 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
     @Override
     public Message decodeNextByte(byte nextByte) {
         pushByte(nextByte);
-        System.out.println(Arrays.toString(Arrays.copyOfRange(bytes, 1, len)));
         if (len == 2) {
             this.opcode = bytesToShort(Arrays.copyOfRange(bytes, 1, 3));
-            System.out.println("opcode is " + opcode);
         }
         if (opcode == (short) 1 || opcode == (short) 2 || opcode == (short) 6) {
             if (nextByte == '\0') {
@@ -219,7 +217,6 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
 
     private Message popStringFollow() {
         String follow = new String(bytes, 3, 1, StandardCharsets.UTF_8);
-        System.out.println("follow is"+follow);
         byte[] usersNum = Arrays.copyOfRange(bytes, 4, 6);
         short numOfUsers = bytesToShort(usersNum);
         List<String> userList = new LinkedList<>();
@@ -228,7 +225,6 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
         for (int i = 6; i <= len; i++) {
             if (bytes[i] == 0) {
                 userList.add(s);
-                System.out.println(s);
                 s = "";
             } else {
                 String c = new String(bytes, i, 1, StandardCharsets.UTF_8);

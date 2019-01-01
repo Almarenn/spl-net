@@ -3,6 +3,7 @@ package bgu.spl.net.srv;
 import bgu.spl.net.api.bidi.Connections;
 import bgu.spl.net.srv.bidi.ConnectionHandler;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 

@@ -7,17 +7,11 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DataBase {
-    private ConcurrentHashMap<String,User> usersList= new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String,User> usersList;
 
-    private static class DBHolder {
-        private static DataBase instance = new DataBase();
-    }
 
-    public static DataBase getInstance() {
-        return DBHolder.instance;
-    }
-
-    private DataBase() {
+    public DataBase() {
+        this.usersList= new ConcurrentHashMap<>();
     }
 
     public boolean containsUserName(String s){

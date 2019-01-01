@@ -117,11 +117,13 @@ public class Reactor<T> implements Server<T> {
         if (key.isReadable()) {
             Runnable task = handler.continueRead();
             if (task != null) {
+                System.out.print("Reactor submitted to pool");
                 pool.submit(handler, task);
             }
         }
 
 	    if (key.isValid() && key.isWritable()) {
+	        System.out.print("key is writable");
             handler.continueWrite();
         }
     }

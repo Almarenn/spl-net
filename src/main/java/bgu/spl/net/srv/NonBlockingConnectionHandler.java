@@ -52,10 +52,11 @@ public class NonBlockingConnectionHandler<T> implements ConnectionHandler<T> {
             buf.flip();
             return () -> {
                 try {
+                    protocol.start(id,connections);
                     while (buf.hasRemaining()) {
                         T nextMessage = encdec.decodeNextByte(buf.get());
                         if (nextMessage != null) {
-                            protocol.start(id,connections);
+                            System.out.print("Got a Message"+nextMessage.getClass().getName());
                             protocol.process(nextMessage);
                         }
                     }
