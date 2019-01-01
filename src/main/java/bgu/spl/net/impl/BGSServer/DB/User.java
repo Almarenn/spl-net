@@ -89,7 +89,7 @@ public class User {
 
     public void increasNumOfPosts(){
         synchronized (numOfPosts){
-        numOfPosts=numOfPosts++;}
+        numOfPosts++;}
     }
 
     public int getNumOfPosts(){
