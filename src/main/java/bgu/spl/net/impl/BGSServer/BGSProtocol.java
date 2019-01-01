@@ -116,14 +116,14 @@ public class BGSProtocol<Message> implements BidiMessagingProtocol {
         List usersNames = new LinkedList();
         List<String> names = m.getNameList();
         for (String name : names) {
-            if (m.getFollow() == 0 && !u.isUserOnMyList(name)) {
+            if (DB.getUserByName(name)!=null && m.getFollow() == 0 && !u.isUserOnMyList(name)) {
                 u.addToFollow(name);
                 numOfSuccessful++;
                 usersNames.add(name);
                 User following = DB.getUserByName(name);
                 following.addFollower(u.getUserName());
             }
-            if (m.getFollow() == 1 && u.isUserOnMyList(name)) {
+            if (DB.getUserByName(name)!=null && m.getFollow() == 1 && u.isUserOnMyList(name)) {
                 u.removeFollowing(name);
                 numOfSuccessful++;
                 usersNames.add(name);
@@ -168,7 +168,7 @@ public class BGSProtocol<Message> implements BidiMessagingProtocol {
             List<String> followers = u.getFollowers();
             synchronized (followers) { // so other threads won't change the followers list before we send notifications
                 for(String follower: followers){
-                    if(toSend.contains(follower)){
+                    if(!toSend.contains(follower)){
                         toSend.add(follower);
                     }
                 }
@@ -177,7 +177,7 @@ public class BGSProtocol<Message> implements BidiMessagingProtocol {
                 for (String user : toSend) {
                     User recipient = DB.getUserByName(user);
                     if (recipient != null) {
-                        Notification n = new Notification((short) 9, '1', u.getUserName(), post);
+                        Notification n = new Notification((short) 9, (byte)1, u.getUserName(), post);
                         synchronized (recipient){
                         boolean wasSent = connections.send(recipient.getId(), n);
                         if (!wasSent) {
@@ -196,7 +196,7 @@ public class BGSProtocol<Message> implements BidiMessagingProtocol {
             connections.send(id, new Error((short) 11, (short) 6));
         } else {
             connections.send(id, new ACK((short) 10, (short) 6));
-            Notification n = new Notification((short) 9, '0', u.getUserName(), m.getContent());
+            Notification n = new Notification((short) 9, (byte)0, u.getUserName(), m.getContent());
             synchronized (recipient){
             boolean wasSent = connections.send(recipient.getId(), n);
             if (!wasSent) {

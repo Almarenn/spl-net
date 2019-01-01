@@ -10,7 +10,7 @@ public class TPCMain {
         DataBase DB= new DataBase();
 
         Server.threadPerClient(
-               7777, //port
+               Integer.parseInt(args[0]), //port
                 () -> new BGSProtocol<Message>(DB),//protocol factory
                BGSEncoderDecoder::new //message encoder decoder factory
         ).serve();

@@ -2,11 +2,11 @@ package bgu.spl.net.impl.BGSServer.Messages;
 
 public class Notification extends Message {
     private short opcode;
-    private char privateOrPublic;
+    private byte privateOrPublic;
     private String user;
     private String post;
 
-    public Notification(short opcode, char privateOrPublic,String user, String post){
+    public Notification(short opcode, byte privateOrPublic,String user, String post){
         this.opcode=opcode;
         this.privateOrPublic=privateOrPublic;
         this.user=user;
@@ -17,7 +17,7 @@ public class Notification extends Message {
         return opcode;
     }
 
-    public int getPrivateOrPublic(){
+    public byte getPrivateOrPublic(){
         return this.privateOrPublic;
     }
 

@@ -96,7 +96,7 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
     private byte[] encodeNotification(Message message) {
         Notification n = (Notification) message;
         byte[] opcode = shortToBytes(n.getOpcode());
-        byte type = (byte) n.getPrivateOrPublic();
+        byte type = n.getPrivateOrPublic();
         byte[] user = n.getUser().getBytes();
         byte[] post = n.getPost().getBytes();
         byte[] messageArray = new byte[opcode.length + user.length + post.length + 3];
@@ -216,7 +216,8 @@ public class BGSEncoderDecoder implements MessageEncoderDecoder<Message> {
     }
 
     private Message popStringFollow() {
-        String follow = new String(bytes, 3, 1, StandardCharsets.UTF_8);
+        byte follow= bytes[3];
+//        String follow = new String(bytes, 3, 1, StandardCharsets.UTF_8);
         byte[] usersNum = Arrays.copyOfRange(bytes, 4, 6);
         short numOfUsers = bytesToShort(usersNum);
         List<String> userList = new LinkedList<>();
