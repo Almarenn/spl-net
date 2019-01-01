@@ -45,7 +45,6 @@ public class User {
 
     public void addToFollow(String user){
         following.add(user);
-        System.out.println(following.toString());
     }
 
     public void addFollower(String user){
